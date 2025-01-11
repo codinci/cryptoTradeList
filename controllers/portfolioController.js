@@ -14,6 +14,7 @@ await client.connect();
 const db = client.db(dbName);
 const portfolioCollection = db.collection(dbCollection);
 
+
 export const cryptoData = async (req, res) => {
 	try {
 		const cryptoData = await fetchCryptoData();
@@ -198,3 +199,70 @@ export const updatePortfolio = async (req, res) => {
 		});
 	}
 };
+
+/**
+ * Delete: Delete a cryptocurrency in a user's portfolio
+ */
+
+export const deletePortfolio = async (req, res) => {
+	const { userId, portfolioIndex } = req.params;
+
+	// Validate input fields
+	if (!userId || portfolioIndex === undefined) {
+			return res.status(400).json({
+			error: "User ID and portfolio index are required",
+		});
+	}
+
+	try {
+		const portfolio = await portfolioCollection.findOne({ userId });
+
+		if (!portfolio) {
+			return res.status(404).json({
+				error: `Portfolio for user with ID ${userId} not found`,
+			});
+		}
+
+		if (
+			!portfolio.cryptocurrencies ||
+			!Array.isArray(portfolio.cryptocurrencies)
+		) {
+		return res.status(404).json({
+			error: "No cryptocurrencies found in portfolio",
+		});
+		}
+
+		// Validate portfolioIndex
+		const index = parseInt(portfolioIndex, 10);
+		if (
+			isNaN(index) ||
+			index < 0 ||
+			index >= portfolio.cryptocurrencies.length
+		) {
+		return res.status(404).json({
+			error: `Index [${portfolioIndex}] is out of bounds`,
+		});
+		}
+
+		// Remove the cryptocurrency at the specified index
+		const removedCryptocurrency = portfolio.cryptocurrencies.splice(index, 1);
+
+		// Save the updated portfolio back to the database
+		await portfolioCollection.updateOne(
+			{ userId },
+			{ $set: { cryptocurrencies: portfolio.cryptocurrencies } }
+		);
+
+		return res.status(200).json({
+			message: `Index [${portfolioIndex}]: Cryptocurrency deleted successfully`,
+			removed: removedCryptocurrency,
+			portfolio,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			error: "An error occurred while deleting the portfolio",
+			message: error.message,
+		});
+	}
+};
+
