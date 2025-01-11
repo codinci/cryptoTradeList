@@ -1,18 +1,7 @@
-import { MongoClient } from "mongodb";
 import logger from "../utils/logger.js";
-import configure from "../utils/config.js";
+import dbConfig from "../utils/databaseConfig.js";
 import fetchCryptoData from "../services/cryptoPriceService.js";
-
-// MongoDB Connection URI and Database Name
-const uri = configure.MONGODB_URI;
-const dbName = configure.MONGODB_DATABASE;
-const dbCollection = configure.DATABASE_COLLECTION;
-
-// Connect to MongoDB
-const client = new MongoClient(uri);
-await client.connect();
-const db = client.db(dbName);
-const portfolioCollection = db.collection(dbCollection);
+import { calculatePortfolioAnalytics } from "../services/cryptoAnalysisService.js";
 
 
 export const cryptoData = async (req, res) => {
@@ -23,6 +12,18 @@ export const cryptoData = async (req, res) => {
 		res
 		.status(500)
 		.json({ error: "Failed to fetch crypto data", details: error.message });
+	}
+}
+
+export const cryptoPortfolioAnalysis = async (req, res) => {
+	const { userId } = req.params;
+	try {
+		const cryptoAssetsAnalysis = await calculatePortfolioAnalytics(userId);
+		res.status(200).json(cryptoAssetsAnalysis);
+	} catch (error) {
+		res
+		.status(500)
+		.json({ error: "Failed to fetch crypto asset analysis", details: error.message });
 	}
 }
 
@@ -46,7 +47,7 @@ export const createPortfolio = async (req, res) => {
 		});
 		}
 
-		let userPortfolio = await portfolioCollection.findOne({ userId });
+		let userPortfolio = await dbConfig.portfolioCollection.findOne({ userId });
 
 		if (!userPortfolio) {
 		const newPortfolio = {
@@ -71,7 +72,7 @@ export const createPortfolio = async (req, res) => {
 		}
 
 		// If the portfolio exists, add the cryptocurrency to the cryptocurrencies array
-		const result = await portfolioCollection.updateOne(
+		const result = await dbConfig.portfolioCollection.updateOne(
 		{ userId },
 		{
 			$push: {
@@ -109,7 +110,7 @@ export const readPortfolio = async (req, res) => {
 	}
 
 	try {
-		const result = await portfolioCollection.findOne({ userId });
+		const result = await dbConfig.portfolioCollection.findOne({ userId });
 
 		if (!result) {
 		return res.status(404).json({
@@ -120,8 +121,8 @@ export const readPortfolio = async (req, res) => {
 		return res.status(200).json(result);
 	} catch (error) {
 		return res.status(500).json({
-		error: "An error occurred while fetching the portfolio",
-		message: error.message,
+			error: "An error occurred while fetching the portfolio",
+			message: error.message,
 		});
 	}
 };
@@ -133,20 +134,20 @@ export const updatePortfolio = async (req, res) => {
 	const { symbol, quantity, purchasePrice } = req.body;
 	const { userId, portfolioIndex } = req.params;
 
-	// Validate input fields
+	// Validate input fields & reuest params
 	if (
 		!userId ||
 		!symbol ||
 		(quantity === undefined && purchasePrice === undefined)
 	) {
 		return res.status(400).json({
-		error:
-			"User ID, symbol, and at least one of quantity or purchasePrice are required",
+			error:
+				"User ID, symbol, and at least one of quantity or purchasePrice are required",
 		});
 	}
 
 	try {
-		const portfolio = await portfolioCollection.findOne({ userId });
+		const portfolio = await dbConfig.portfolioCollection.findOne({ userId });
 		if (!portfolio) {
 			return res.status(404).json({
 				error: `Portfolio for user with ID ${userId} not found`,
@@ -183,7 +184,7 @@ export const updatePortfolio = async (req, res) => {
 		};
 
 		// Save the updated portfolio back to the database
-		await portfolioCollection.updateOne(
+		await dbConfig.portfolioCollection.updateOne(
 			{ userId },
 			{ $set: { cryptocurrencies: portfolio.cryptocurrencies } }
 		);
@@ -207,7 +208,7 @@ export const updatePortfolio = async (req, res) => {
 export const deletePortfolio = async (req, res) => {
 	const { userId, portfolioIndex } = req.params;
 
-	// Validate input fields
+	// Validate request params
 	if (!userId || portfolioIndex === undefined) {
 			return res.status(400).json({
 			error: "User ID and portfolio index are required",
@@ -215,7 +216,7 @@ export const deletePortfolio = async (req, res) => {
 	}
 
 	try {
-		const portfolio = await portfolioCollection.findOne({ userId });
+		const portfolio = await dbConfig.portfolioCollection.findOne({ userId });
 
 		if (!portfolio) {
 			return res.status(404).json({
@@ -248,7 +249,7 @@ export const deletePortfolio = async (req, res) => {
 		const removedCryptocurrency = portfolio.cryptocurrencies.splice(index, 1);
 
 		// Save the updated portfolio back to the database
-		await portfolioCollection.updateOne(
+		await dbConfig.portfolioCollection.updateOne(
 			{ userId },
 			{ $set: { cryptocurrencies: portfolio.cryptocurrencies } }
 		);

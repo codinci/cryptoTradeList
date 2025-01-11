@@ -1,5 +1,5 @@
 import express from 'express';
-import { cryptoData, createPortfolio, readPortfolio, updatePortfolio, deletePortfolio } from '../controllers/portfolioController.js';
+import { cryptoData, createPortfolio, readPortfolio, updatePortfolio, deletePortfolio, cryptoPortfolioAnalysis } from '../controllers/portfolioController.js';
 
 const router = express.Router();
 
@@ -41,7 +41,91 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.get("/", cryptoData );
+router.get("/", cryptoData);
+
+/**
+ * @swagger
+ * /{userId}/portfolio/analysis:
+ *   get:
+ *     summary: Get the portfolio analysis for a user
+ *     description: This endpoint calculates and returns the portfolio analysis, including total values, current prices, and percentage gain/loss for each cryptocurrency in the user's portfolio.
+ *     tags:
+ *       - Portfolio
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         description: The ID of the user whose portfolio analysis is to be fetched
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Portfolio analysis data successfully fetched
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                         description: The name of the cryptocurrency
+ *                         example: Bitcoin
+ *                       symbol:
+ *                         type: string
+ *                         description: The symbol of the cryptocurrency
+ *                         example: BTC
+ *                       quantity:
+ *                         type: number
+ *                         description: The quantity of the cryptocurrency held
+ *                         example: 2
+ *                       purchasePrice:
+ *                         type: number
+ *                         description: The purchase price of the cryptocurrency
+ *                         example: 50000
+ *                       totalValue:
+ *                         type: number
+ *                         description: The total value of the cryptocurrency based on the purchase price
+ *                         example: 100000
+ *                       currentPrice:
+ *                         type: number
+ *                         description: The current market price of the cryptocurrency
+ *                         example: 55000
+ *                       currentValue:
+ *                         type: number
+ *                         description: The current value of the cryptocurrency based on the current price
+ *                         example: 110000
+ *                       percentageGainLoss:
+ *                         type: string
+ *                         description: The percentage gain or loss of the cryptocurrency
+ *                         example: 10.00
+ *       400:
+ *         description: Invalid user ID or request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid user ID"
+ *       500:
+ *         description: An error occurred while fetching the portfolio analysis
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "An error occurred while calculating portfolio analytics"
+ */
+router.get("/:userId/portfolio/analysis", cryptoPortfolioAnalysis);
+
 /**
  * @swagger
  * /api/cryptos/{userId}:
@@ -98,6 +182,7 @@ router.get("/", cryptoData );
  *       500:
  *         description: Internal server error
  */
+
 router.post("/:userId/portfolio/create", createPortfolio);
 /**
  * @swagger
