@@ -96,7 +96,7 @@ export const createPortfolio = async (req, res) => {
 };
 
 /**
- * Read: Add a cryptocurrency to a user's portfolio
+ * Read: Display a user's portfolio
  */
 export const readPortfolio = async (req, res) => {
 	const { userId } = req.params;
@@ -125,3 +125,76 @@ export const readPortfolio = async (req, res) => {
 	}
 };
 
+/**
+ * Update: Update a cryptocurrency in a user's portfolio
+ */
+export const updatePortfolio = async (req, res) => {
+	const { symbol, quantity, purchasePrice } = req.body;
+	const { userId, portfolioIndex } = req.params;
+
+	// Validate input fields
+	if (
+		!userId ||
+		!symbol ||
+		(quantity === undefined && purchasePrice === undefined)
+	) {
+		return res.status(400).json({
+		error:
+			"User ID, symbol, and at least one of quantity or purchasePrice are required",
+		});
+	}
+
+	try {
+		const portfolio = await portfolioCollection.findOne({ userId });
+		if (!portfolio) {
+			return res.status(404).json({
+				error: `Portfolio for user with ID ${userId} not found`,
+			});
+		}
+
+		if (
+			!portfolio.cryptocurrencies ||
+			!Array.isArray(portfolio.cryptocurrencies)
+		) {
+		return res.status(404).json({
+			error: "No cryptocurrencies found in portfolio",
+		});
+		}
+
+		// Ensure portfolioIndex is valid
+		const index = parseInt(portfolioIndex, 10);
+		if (
+			isNaN(index) ||
+			index < 0 ||
+			index >= portfolio.cryptocurrencies.length
+		) {
+		return res.status(404).json({
+			error: `Index [${portfolioIndex}] is out of bounds`,
+		});
+		}
+
+		// Update the cryptocurrency details using the spread operator
+		portfolio.cryptocurrencies[index] = {
+			...portfolio.cryptocurrencies[index],
+			...(quantity !== undefined && { quantity }),
+			...(purchasePrice !== undefined && { purchasePrice }),
+			updatedAt: new Date(),
+		};
+
+		// Save the updated portfolio back to the database
+		await portfolioCollection.updateOne(
+			{ userId },
+			{ $set: { cryptocurrencies: portfolio.cryptocurrencies } }
+		);
+
+		return res.status(200).json({
+			message: `Index [${portfolioIndex}]: Cryptocurrency updated successfully`,
+			portfolio,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			error: "An error occurred while updating the portfolio",
+			message: error.message,
+		});
+	}
+};
