@@ -69,7 +69,7 @@ export const createPortfolio = async (req, res) => {
 
 		};
 
-		const result = await portfolioCollection.insertOne(newPortfolio);
+		const result = await dbConfig.portfolioCollection.insertOne(newPortfolio);
 		return res.status(201).json({
 			message: "New portfolio created successfully.",
 			portfolioId: result.insertedId,
