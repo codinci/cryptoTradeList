@@ -163,9 +163,9 @@ export const updatePortfolio = async (req, res) => {
 			!portfolio.cryptocurrencies ||
 			!Array.isArray(portfolio.cryptocurrencies)
 		) {
-		return res.status(404).json({
-			error: "No cryptocurrencies found in portfolio",
-		});
+			return res.status(404).json({
+				error: "No cryptocurrencies found in portfolio",
+			});
 		}
 
 		// Ensure portfolioIndex is valid
@@ -175,15 +175,18 @@ export const updatePortfolio = async (req, res) => {
 			index < 0 ||
 			index >= portfolio.cryptocurrencies.length
 		) {
-		return res.status(404).json({
-			error: `Index [${portfolioIndex}] is out of bounds`,
-		});
+			return res.status(404).json({
+				error: `Index [${portfolioIndex}] is out of bounds`,
+			});
 		}
+
+		// Add the new quantity to the existing quantity
+		const updatedQuantity = portfolio.cryptocurrencies[index].quantity + (quantity || 0);
 
 		// Update the cryptocurrency details using the spread operator
 		portfolio.cryptocurrencies[index] = {
 			...portfolio.cryptocurrencies[index],
-			...(quantity !== undefined && { quantity }),
+			...(quantity !== undefined && { quantity: updatedQuantity }),
 			...(purchasePrice !== undefined && { purchasePrice }),
 			updatedAt: new Date(),
 		};
