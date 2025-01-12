@@ -43,4 +43,4 @@ The following articles and documentation were used in the building of this appli
 - [Swagger Documentation](https://medium.com/swlh/restful-api-documentation-made-easy-with-swagger-and-openapi-6df7f26dcad)
 
 ## Live Site
- You can view the live site of the application on [CryptoTradeListBackend](https://cryptotradelist.fly.dev/)
+ You can view the live site of the application on [CryptoTradeListBackend](https://cryptotradelist.fly.dev/api/docs)
