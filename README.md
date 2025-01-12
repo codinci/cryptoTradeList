@@ -40,3 +40,4 @@ Open [http://localhost:8000/api/cryptos](http://localhost:8000/api/cryptos) with
 The following articles and documentation were used in the building of this application:
 - [Linting](https://medium.com/@sindhujad6/setting-up-eslint-and-prettier-in-a-node-js-project-f2577ee2126f)
 - [FlyIo with Github Actions](https://fly.io/docs/launch/continuous-deployment-with-github-actions/)
+- [Swagger Documentation](https://medium.com/swlh/restful-api-documentation-made-easy-with-swagger-and-openapi-6df7f26dcad)
