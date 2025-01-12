@@ -3,6 +3,11 @@ import dbConfig from "../utils/databaseConfig.js";
 import fetchCryptoData from "../services/cryptoPriceService.js";
 import { calculatePortfolioAnalytics } from "../services/cryptoAnalysisService.js";
 
+const initializeDb = async () => {
+	await dbConfig.connect();
+};
+
+initializeDb();
 
 export const cryptoData = async (req, res) => {
 	try {

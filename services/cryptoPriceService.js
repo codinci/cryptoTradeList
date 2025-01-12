@@ -9,10 +9,10 @@ const fetchCryptoData = async () => {
 
 		// Filter top 10 cryptos by market cap
 		const cryptos = response.data.slice(0, 10).map((crypto) => ({
-		symbol: crypto.symbol,
-		name: crypto.name,
-		price: crypto.current_price,
-		timestamp: crypto.last_updated,
+			symbol: crypto.symbol,
+			name: crypto.name,
+			price: crypto.current_price,
+			timestamp: crypto.last_updated,
 		}));
 
 		return cryptos;

@@ -4,6 +4,7 @@ import router from "./routes/crypto.js";
 import swaggerJSDoc from "swagger-jsdoc";
 import configure from "./utils/config.js";
 import swaggerUi from "swagger-ui-express";
+import dbConfig from "./utils/databaseConfig.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 
 const app = express();
@@ -21,8 +22,7 @@ const client = new MongoClient(configure.MONGODB_URI, {
 
 async function run() {
 	try {
-		await client.connect();
-		await client.db("admin").command({ ping: 1 });
+		await dbConfig.connect();
 		logger.info(
 			"Pinged your deployment. You successfully connected to MongoDB!"
 		);

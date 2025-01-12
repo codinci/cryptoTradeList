@@ -1,15 +1,25 @@
 import { MongoClient } from "mongodb";
 import configure from "./config.js";
+import logger from "./logger.js";
 
 const uri = configure.MONGODB_URI;
-const dbName = configure.MONGODB_DATABASE;
-const dbCollection = configure.DATABASE_COLLECTION;
-// Connect to MongoDB
 const client = new MongoClient(uri);
-await client.connect();
-const db = client.db(dbName);
-const portfolioCollection = db.collection(dbCollection);
 
-const dbConfig = { db, portfolioCollection };
+const dbConfig = {
+	db: null,
+	portfolioCollection: null,
+	connect: async () => {
+		try {
+			await client.connect();
+			const db = client.db(configure.MONGODB_DATABASE);
+			const portfolioCollection = db.collection(configure.DATABASE_COLLECTION);
+
+			dbConfig.db = db;
+			dbConfig.portfolioCollection = portfolioCollection;
+		} catch (error) {
+			logger.error("MongoDB connection error:", error);
+		}
+	},
+};
 
 export default dbConfig;
